@@ -1,4 +1,5 @@
 const { app, BrowserWindow } = require('electron');
+const path = require('path');
 
 let mainWindow;
 
@@ -11,5 +12,7 @@ app.whenReady().then(() => {
         }
     });
 
-    mainWindow.loadURL('http://localhost:5173'); // Загружаем Svelte UI
+    // Загружаем `index.html` из `dist/`
+    mainWindow.loadURL(`file://${path.join(__dirname, 'frontend/dist/index.html')}`);
+
 });
