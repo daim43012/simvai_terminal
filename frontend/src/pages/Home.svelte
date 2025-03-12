@@ -1,1 +1,6 @@
-<h1>🏠 Главная страница</h1>
+<script>
+    import Categories from "../components/Categories.svelte";
+</script>
+
+<Categories />
+

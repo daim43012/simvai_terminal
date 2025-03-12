@@ -1,7 +1,4 @@
 <script>
-  import { onMount } from "svelte";
-  import { homeOutline, statsChartOutline, walletOutline, settingsOutline } from "ionicons/icons";
-
   export let activePage;
 
   let menuItems = [

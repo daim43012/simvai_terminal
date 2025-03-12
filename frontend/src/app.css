@@ -24,11 +24,14 @@ a:hover {
 
 body {
   margin: 0;
-  display: block;
-  place-items: center;
-  min-width: 320px;
+  display: flex;
+  justify-content: center; 
+  align-items: center; 
   min-height: 100vh;
+  min-width: 320px;
+ 
 }
+
 
 h1 {
   font-size: 3.2em;
@@ -40,10 +43,12 @@ h1 {
 }
 
 #app {
-  max-width: 1280px;
-  margin: 0 auto;
+  max-width: 1600px;
+  width: 90%; 
   padding: 2rem;
-  text-align: left;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
 }
 
 button {
