@@ -2,11 +2,13 @@
   import { onMount } from "svelte";
   import { homeOutline, statsChartOutline, walletOutline, settingsOutline } from "ionicons/icons";
 
+  export let activePage;
+
   let menuItems = [
-    { icon: "home-outline", tooltip: "Главная" },
-    { icon: "stats-chart-outline", tooltip: "График" },
-    { icon: "wallet-outline", tooltip: "Баланс" },
-    { icon: "settings-outline", tooltip: "Настройки" }
+    { icon: "home-outline", tooltip: "Главная", page: "home" },
+    { icon: "stats-chart-outline", tooltip: "График", page: "chart" },
+    { icon: "wallet-outline", tooltip: "Баланс", page: "balance" },
+    { icon: "settings-outline", tooltip: "Настройки", page: "settings" }
   ];
 </script>
 
@@ -49,7 +51,7 @@
 
 <div class="sidebar">
   {#each menuItems as item}
-    <div class="menu-item" title="{item.tooltip}">
+    <div class="menu-item" title="{item.tooltip}" on:click={() => activePage = item.page}>
       <ion-icon name="{item.icon}"></ion-icon>
     </div>
   {/each}
