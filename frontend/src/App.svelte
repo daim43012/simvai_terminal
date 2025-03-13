@@ -4,8 +4,15 @@
   import Chart from "./pages/Chart.svelte";
   import Balance from "./pages/Balance.svelte";
   import Settings from "./pages/Settings.svelte";
+  import PortfolioPage from "./pages/PortfolioPage.svelte";
 
   let activePage = "home";
+  let selectedPortfolio = null;
+
+  function openPortfolio(id) {
+    activePage = "portfolio";
+    selectedPortfolio = id;
+  }
 </script>
 
 <style>
@@ -26,13 +33,15 @@
 
   <div class="content">
     {#if activePage === "home"}
-      <Home />
+      <Home on:openPortfolio={event => openPortfolio(event.detail)} />
     {:else if activePage === "chart"}
       <Chart />
     {:else if activePage === "balance"}
       <Balance />
     {:else if activePage === "settings"}
       <Settings />
+    {:else if activePage === "portfolio"}
+<PortfolioPage {selectedPortfolio} on:back={() => activePage = "home"} />
     {/if}
   </div>
 </div>
