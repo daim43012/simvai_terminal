@@ -1,4 +1,4 @@
-<script>
+<script lang="ts">
     import Portfolio from "./Portfolio.svelte";
     import { createEventDispatcher } from "svelte";
 
@@ -10,7 +10,7 @@
         { id: "tools-2", name: "Инструменты Pro 2" }
     ];
 
-    function handlePortfolioClick(id) {
+    function handlePortfolioClick(id : any) {
         dispatch("openPortfolio", id);
     }
 </script>

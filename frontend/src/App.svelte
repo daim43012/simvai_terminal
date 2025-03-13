@@ -1,15 +1,16 @@
-<script>
+<script lang="ts">
   import Sidebar from "./components/Sidebar.svelte";
   import Home from "./pages/Home.svelte";
   import Chart from "./pages/Chart.svelte";
   import Balance from "./pages/Balance.svelte";
   import Settings from "./pages/Settings.svelte";
   import PortfolioPage from "./pages/PortfolioPage.svelte";
+  import Header from "../src/components/Header.svelte";
 
   let activePage = "home";
-  let selectedPortfolio = null;
+  let selectedPortfolio : any;
 
-  function openPortfolio(id) {
+  function openPortfolio(id : any) {
     activePage = "portfolio";
     selectedPortfolio = id;
   }
@@ -29,6 +30,8 @@
 </style>
 
 <div class="container">
+  <Header />
+
   <Sidebar bind:activePage />
 
   <div class="content">
