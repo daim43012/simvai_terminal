@@ -1,23 +1,37 @@
-<script>
-    import { createEventDispatcher } from "svelte";
+<script lang="ts">
+  import { createEventDispatcher } from "svelte";
+  import Card from "../components/CardPortfolio.svelte";
+  import CardMain from "../components/CardPortfolioMain.svelte";
 
-    export let selectedPortfolio;
-    const dispatch = createEventDispatcher();
+  export let selectedPortfolio: "strategies" | "tools" | "tools-2";
+  const dispatch = createEventDispatcher();
 
-    let portfolioData = {
-        strategies: { name: "Популярные стратегии", description: "Описание стратегий" },
-        tools: { name: "Инструменты Pro", description: "Описание инструментов" },
-        "tools-2": { name: "Инструменты Pro 2", description: "Описание инструментов 2" }
-    };
+  let portfolioData: Record<
+    "strategies" | "tools" | "tools-2",
+    { name: string; description: string }
+  > = {
+    strategies: {
+      name: "Популярные стратегии",
+      description: "Описание стратегий",
+    },
+    tools: { name: "Инструменты Pro", description: "Описание инструментов" },
+    "tools-2": {
+      name: "Инструменты Pro 2",
+      description: "Описание инструментов 2",
+    },
+  };
 
-    let data = portfolioData[selectedPortfolio] || { name: "Не найдено", description: "Нет данных" };
+  let data = portfolioData[selectedPortfolio] || {
+    name: "Не найдено",
+    description: "Нет данных",
+  };
 
-    function goBack() {
-        dispatch("back"); // Отправляем событие "back"
-    }
+  function goBack() {
+    dispatch("back");
+  }
 </script>
-
-<h1>{data.name}</h1>
-<p>{data.description}</p>
-
 <button on:click={goBack}>Назад</button>
+
+<div style="margin-top: 50px;"><Card /></div>
+<div style="margin-top: 50px;"><CardMain /></div>
+

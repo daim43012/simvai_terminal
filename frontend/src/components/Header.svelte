@@ -12,7 +12,7 @@
         left: 60px; /* Учитываем ширину sidebar */
         width: calc(100% - 60px); /* Заполняет оставшееся пространство */
         height: 50px; /* Тонкая плашка */
-        background: rgba(30, 30, 30, 0.9); /* Полупрозрачный фон */
+        background: #1e1e1e;
         color: white;
         display: flex;
         align-items: center;
