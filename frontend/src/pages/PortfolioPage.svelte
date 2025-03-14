@@ -32,6 +32,7 @@
 </script>
 <button on:click={goBack}>Назад</button>
 
-<div style="margin-top: 50px;"><Card /></div>
+<div style="margin-top: 50px;"><Card name="Trend Index" age="895" />
+</div>
 <div style="margin-top: 50px;"><CardMain /></div>
 
