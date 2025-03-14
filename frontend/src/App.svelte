@@ -26,11 +26,12 @@
   .content {
     flex-grow: 1;
     padding: 20px;
+    
   }
 </style>
+  <Header />
 
 <div class="container">
-  <Header />
 
   <Sidebar bind:activePage />
 

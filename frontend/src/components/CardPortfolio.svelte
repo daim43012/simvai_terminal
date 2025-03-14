@@ -82,7 +82,7 @@
 <div class="category-card">
     <div class="header">
         <div class="title">
-            <img src="/binance-icon.png" alt="Icon" width="24" height="24" />
+            <img src="/photos/ftm-blue.png" alt="FTM Blue" width="26" height="26" />
             <div>
                 <div class="name">{name}</div>
                 <div class="author">от FinTechMe</div>
