@@ -12,5 +12,8 @@
   "description": "",
   "devDependencies": {
     "electron": "^35.0.1"
+  },
+  "dependencies": {
+    "svelte-routing": "^2.13.0"
   }
 }

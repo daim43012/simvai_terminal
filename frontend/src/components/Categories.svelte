@@ -1,22 +1,29 @@
-<script>
+<script lang="ts">
   import Category from "./Category.svelte";
+  export let activePage; // Теперь `activePage` передается сверху
 
   let categories = [
-    { name: "AI советник" },
-    { name: "Аналитика" },
-    { name: "Обучение" },
-    { name: "Туториал" },
+    { name: "AI советник", page: "ai-adviser" },
+    { name: "Аналитика", page: "analytic" },
+    { name: "Обучение", page: "study" },
+    { name: "Конструктор", page: "constructor" },
   ];
+
+  function goToPage(page:any) {
+    activePage = page; // Меняем активную страницу
+  }
 </script>
 
 <h2 style="padding: 10px;">Categories</h2>
 <div class="categories-container">
   {#each categories as category}
-    <div class="category-wrapper">
+    <div class="category-wrapper" on:click={() => goToPage(category.page)}>
       <Category name={category.name} />
     </div>
   {/each}
 </div>
+
+
 
 <style>
   .categories-container {

@@ -19,6 +19,7 @@
   },
   "dependencies": {
     "electron-store": "^10.0.1",
-    "ionicons": "^7.4.0"
+    "ionicons": "^7.4.0",
+    "svelte-routing": "^2.13.0"
   }
 }
