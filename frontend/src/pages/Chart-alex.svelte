@@ -11,21 +11,17 @@
 
   const API_URL = 'https://bot-advisor.com/api/robo-advisor/analytics';
   const BOT_NAME = 'AI_Analytic';
-  // Icons are in frontend/public/png_currency/<ticker>.png (all lowercase)
   const ICON_BASE = '/png_currency';
-  // How much wider to draw the hovered bar (px)
-  const HOVER_GROW_PX = 12;
 
   let canvas: HTMLCanvasElement;
   let chart: ChartJS | null = null;
   let loading = true;
   let error: string | null = null;
 
-  let labels: string[] = [];              // tickers
-  let values: number[] = [];              // percentage values
-  let params: (string | null)[] = [];     // parameter/tf
+  let labels: string[] = [];        
+  let values: number[] = [];             
+  let params: (string | null)[] = [];     
 
-  // Case-insensitive key picker
   function pick(obj: any, keys: string[]) {
     if (!obj) return undefined;
     const lower = Object.fromEntries(Object.keys(obj).map((k) => [k.toLowerCase(), obj[k]]));
@@ -72,7 +68,6 @@
     }
   }
 
-  // Custom HTML tooltip: crypto logo + code + parameter (hide if it's 'n') + larger percent
   function externalTooltipHandler(context: any) {
     const { chart, tooltip } = context;
     const parent = chart.canvas.parentNode as HTMLElement;
@@ -105,12 +100,9 @@
       const dp = tooltip.dataPoints[0];
       const idx: number = dp.dataIndex ?? 0;
       const code = (labels[idx] || '').toUpperCase();
-      const rawParam = (params[idx] ?? '').toString();
-      const param = rawParam && rawParam.toLowerCase() !== 'n' ? rawParam : ''; // remove 'n'
       const val = Number.isFinite(values[idx]) ? values[idx] : null;
       const percent = val !== null ? `${val.toLocaleString(undefined, { maximumFractionDigits: 2 })}%` : '';
 
-      // Build lowercase icon path with uppercase fallback
       const lower = code.toLowerCase();
       const iconLower = `${ICON_BASE}/${lower}.png`;
       const iconUpper = `${ICON_BASE}/${code}.png`;
@@ -123,7 +115,6 @@
           <div style="display:flex; flex-direction:column; line-height:1.25;">
             <div style="font-weight:700; letter-spacing:0.3px;">${code}</div>
             <div>
-              ${param ? `<span style='opacity:0.9; font-size:12px; margin-right:6px;'>${param}</span>` : ''}
               ${percent ? `<span style='font-size:18px; font-weight:700;'>${percent}</span>` : ''}
             </div>
           </div>
@@ -137,7 +128,6 @@
     tooltipEl.style.opacity = '1';
   }
 
-  // Plugin that visually grows the hovered bar by drawing a wider overlay
   const HoverGrowPlugin: Plugin<'bar'> = {
     id: 'hoverGrow',
     afterDatasetsDraw(chart) {
@@ -153,22 +143,17 @@
       const area = chart.chartArea;
       const ctx = chart.ctx;
 
-      const w = width + HOVER_GROW_PX;
-      const h = Math.abs(base - y);
-      const left = x - w / 2;
-      const top = Math.min(y, base);
+
 
       const rawVal = (chart.data.datasets[ae.datasetIndex].data as number[])[ae.index] as number;
       const fill = rawVal >= 0 ? 'rgba(34,197,94,1)' : 'rgba(239,68,68,1)';
 
       ctx.save();
-      // clip to chart area so overlay doesn't spill
       ctx.beginPath();
       ctx.rect(area.left, area.top, area.right - area.left, area.bottom - area.top);
       ctx.clip();
 
       ctx.fillStyle = fill;
-      ctx.fillRect(left, top, w, h); // straight corners
       ctx.restore();
     }
   };
@@ -189,8 +174,8 @@
             data: values,
             backgroundColor: colors,
             borderColor: borders,
-            borderWidth: 0,          // no outline; hover overlay handles focus
-            borderRadius: 0,         // no rounded corners
+            borderWidth: 0,         
+            borderRadius: 0,       
             categoryPercentage: 0.95,
             barPercentage: 0.95
           }
@@ -235,7 +220,6 @@
         },
         animations: { active: { duration: 120 } }
       },
-      // Register our plugin (no custom options object -> no TS error)
       plugins: [HoverGrowPlugin]
     };
 
@@ -263,7 +247,7 @@
   .wrap {
     width: 100%;
     height: 480px;
-    border-radius: 0; /* no rounded border around the graph */
+    border-radius: 0; 
     padding: 0;
     box-sizing: border-box;
     position: relative;
