@@ -10,6 +10,7 @@
   import Analytic from "./pages/Analytic.svelte";
   import Study from "./pages/Study.svelte";
   import Header from "../src/components/Header.svelte";
+  import ChartAlex from "./pages/Chart-alex.svelte";
 
   let activePage: string = "home";
   let selectedPortfolio: any;
@@ -42,7 +43,9 @@
     {#if activePage === "home"}
       <Home bind:activePage on:openPortfolio={event => openPortfolio(event.detail)} />
     {:else if activePage === "chart"}
-      <Chart />
+      <!-- <Chart /> -->
+      <ChartAlex />
+
     {:else if activePage === "balance"}
       <Balance />
     {:else if activePage === "settings"}
