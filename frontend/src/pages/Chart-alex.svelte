@@ -1,272 +1,244 @@
 <script lang="ts">
-  import { onMount, onDestroy } from 'svelte';
-  import Chart from 'chart.js/auto';
-  import type {
-    Chart as ChartJS,
-    ChartConfiguration,
-    ChartEvent,
-    ActiveElement,
-    Plugin
-  } from 'chart.js';
+  import { onMount, onDestroy } from "svelte";
+  import * as echarts from "echarts";
+  type EChartsOption = echarts.EChartsOption;
 
-  const API_URL = 'https://bot-advisor.com/api/robo-advisor/analytics';
-  const BOT_NAME = 'AI_Analytic';
-  const ICON_BASE = '/png_currency';
-
-  let canvas: HTMLCanvasElement;
-  let chart: ChartJS | null = null;
-  let loading = true;
-  let error: string | null = null;
-
-  let labels: string[] = [];        
-  let values: number[] = [];             
-  let params: (string | null)[] = [];     
-
-  function pick(obj: any, keys: string[]) {
-    if (!obj) return undefined;
-    const lower = Object.fromEntries(Object.keys(obj).map((k) => [k.toLowerCase(), obj[k]]));
-    for (const k of keys) {
-      const v = lower[k.toLowerCase()];
-      if (v !== undefined && v !== null) return v;
-    }
-    return undefined;
-  }
-
-  async function fetchAndRender() {
-    loading = true;
-    error = null;
-
-    try {
-      const res = await fetch(API_URL, { cache: 'no-store' });
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      const json = await res.json();
-      const rows: any[] = Array.isArray(json) ? json : [json];
-
-      const filtered = rows
-        .map((r) => {
-          const bot = String(pick(r, ['bot']) ?? '');
-          const code = String(pick(r, ['code']) ?? '');
-          const valueRaw = pick(r, ['fclosepkt', 'FclosePkt', 'FclosePct', 'fclosepct']);
-          const value = Number(valueRaw);
-          const param = pick(r, ['parameter', 'tf']);
-          return { bot, code, value, param: param != null ? String(param) : null };
-        })
-        .filter((r) => r.bot === BOT_NAME && r.code && Number.isFinite(r.value));
-
-      filtered.sort((a, b) => b.value - a.value);
-
-      labels = filtered.map((r) => r.code);
-      values = filtered.map((r) => r.value);
-      params = filtered.map((r) => r.param);
-
-      render();
-    } catch (e: any) {
-      error = e?.message ?? 'Failed to load data';
-      destroyChart();
-    } finally {
-      loading = false;
-    }
-  }
-
-  function externalTooltipHandler(context: any) {
-    const { chart, tooltip } = context;
-    const parent = chart.canvas.parentNode as HTMLElement;
-
-    let tooltipEl = parent.querySelector('div.chartjs-ext-tooltip') as HTMLDivElement | null;
-    if (!tooltipEl) {
-      tooltipEl = document.createElement('div');
-      tooltipEl.className = 'chartjs-ext-tooltip';
-      Object.assign(tooltipEl.style, {
-        position: 'absolute',
-        pointerEvents: 'none',
-        background: 'rgba(17, 24, 39, 0.95)',
-        color: '#e5e7eb',
-        borderRadius: '10px',
-        padding: '10px 12px',
-        boxShadow: '0 6px 24px rgba(0,0,0,0.35)',
-        transform: 'translate(-50%, -110%)',
-        zIndex: '50',
-        opacity: '0'
-      } as CSSStyleDeclaration);
-      parent.appendChild(tooltipEl);
-    }
-
-    if (tooltip.opacity === 0) {
-      tooltipEl.style.opacity = '0';
-      return;
-    }
-
-    if (tooltip.dataPoints && tooltip.dataPoints.length) {
-      const dp = tooltip.dataPoints[0];
-      const idx: number = dp.dataIndex ?? 0;
-      const code = (labels[idx] || '').toUpperCase();
-      const val = Number.isFinite(values[idx]) ? values[idx] : null;
-      const percent = val !== null ? `${val.toLocaleString(undefined, { maximumFractionDigits: 2 })}%` : '';
-
-      const lower = code.toLowerCase();
-      const iconLower = `${ICON_BASE}/${lower}.png`;
-      const iconUpper = `${ICON_BASE}/${code}.png`;
-
-      tooltipEl.innerHTML = `
-        <div style="display:flex; align-items:center; gap:10px;">
-          <img src="${iconLower}" alt="${code}"
-               style="width:22px; height:22px; border-radius:4px; object-fit:contain; background:#111827;"
-               onerror="this.onerror=null; this.src='${iconUpper}';" />
-          <div style="display:flex; flex-direction:column; line-height:1.25;">
-            <div style="font-weight:700; letter-spacing:0.3px;">${code}</div>
-            <div>
-              ${percent ? `<span style='font-size:18px; font-weight:700;'>${percent}</span>` : ''}
-            </div>
-          </div>
-        </div>
-      `;
-    }
-
-    const { offsetLeft: positionX, offsetTop: positionY } = chart.canvas;
-    tooltipEl.style.left = positionX + tooltip.caretX + 'px';
-    tooltipEl.style.top = positionY + tooltip.caretY + 'px';
-    tooltipEl.style.opacity = '1';
-  }
-
-  const HoverGrowPlugin: Plugin<'bar'> = {
-    id: 'hoverGrow',
-    afterDatasetsDraw(chart) {
-      const active = chart.getActiveElements();
-      if (!active.length) return;
-
-      const ae = active[0];
-      const meta = chart.getDatasetMeta(ae.datasetIndex);
-      const bar: any = meta?.data?.[ae.index];
-      if (!bar) return;
-
-      const { x, y, base, width } = bar.getProps(['x', 'y', 'base', 'width'], true);
-      const area = chart.chartArea;
-      const ctx = chart.ctx;
-
-
-
-      const rawVal = (chart.data.datasets[ae.datasetIndex].data as number[])[ae.index] as number;
-      const fill = rawVal >= 0 ? 'rgba(34,197,94,1)' : 'rgba(239,68,68,1)';
-
-      ctx.save();
-      ctx.beginPath();
-      ctx.rect(area.left, area.top, area.right - area.left, area.bottom - area.top);
-      ctx.clip();
-
-      ctx.fillStyle = fill;
-      ctx.restore();
-    }
+  // ---------- Types ----------
+  type ApiItem = {
+    bot: string;        // "AI_Analytic"
+    code: string;       // e.g., "AVAX"
+    FclosePct: number;  // %
+    close: number;      // API reference close
   };
 
-  function render() {
-    destroyChart();
+  type Row = {
+    code: string;
+    FclosePct: number;
+    close: number;
+    lastPriceBinance?: number;
+    delta?: number;    // computed %
+    bar?: number;      // FclosePct + delta
+  };
 
-    const colors = values.map((v) => (v >= 0 ? 'rgba(34,197,94,0.85)' : 'rgba(239,68,68,0.85)'));
-    const borders = values.map((v) => (v >= 0 ? '#22c55e' : '#ef4444'));
+  // ---------- State ----------
+  let chartEl: HTMLDivElement;
+  let chart: echarts.ECharts | null = null;
+  let ws: WebSocket | null = null;
+  let refreshTimer: number | null = null;
 
-    const cfg: ChartConfiguration<'bar', number[], string> = {
-      type: 'bar',
-      data: {
-        labels,
-        datasets: [
-          {
-            label: '',
-            data: values,
-            backgroundColor: colors,
-            borderColor: borders,
-            borderWidth: 0,         
-            borderRadius: 0,       
-            categoryPercentage: 0.95,
-            barPercentage: 0.95
-          }
-        ]
-      },
-      options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        interaction: { mode: 'index', intersect: true },
-        onHover: (_evt: ChartEvent, elements: ActiveElement[], chart) => {
-          if (chart?.canvas) chart.canvas.style.cursor = elements.length ? 'pointer' : 'default';
-        },
-        scales: {
-          x: {
-            grid: { display: false },
-            ticks: {
-              maxRotation: 60,
-              minRotation: 60,
-              autoSkip: false,
-              color: '#cbd5e1'
-            },
-            border: { display: false }
-          },
-          y: {
-            beginAtZero: true,
-            title: { display: false, text: '' },
-            ticks: {
-              color: '#94a3b8',
-              callback: (v) => String(v)
-            },
-            grid: { color: 'rgba(148,163,184,0.2)' },
-            border: { display: false }
-          }
-        },
-        plugins: {
-          legend: { display: false },
-          tooltip: {
-            enabled: false,
-            external: externalTooltipHandler,
-            displayColors: false
-          }
-        },
-        animations: { active: { duration: 120 } }
-      },
-      plugins: [HoverGrowPlugin]
-    };
+  let rows: Record<string, Row> = {};
+  const REFRESH_MS = 5000; // update every 5 seconds
 
-    chart = new Chart(canvas.getContext('2d')!, cfg);
+  // ---------- Helpers (formulas unchanged) ----------
+  function computeDelta(close: number, live?: number): number {
+    if (!close || !live) return 0;
+    if (live > close) return ((live - close) / close) * 100;
+    if (close > live) return ((close - live) / close) * -100;
+    return 0;
   }
 
-  function destroyChart() {
-    const container = canvas?.parentNode as HTMLElement | null;
-    const existing = container?.querySelector('.chartjs-ext-tooltip') as HTMLDivElement | null;
-    if (existing && existing.parentNode) existing.parentNode.removeChild(existing);
-
-    if (chart) {
-      chart.destroy();
-      chart = null;
+  function recalcAll() {
+    for (const code in rows) {
+      const r = rows[code];
+      r.delta = computeDelta(r.close, r.lastPriceBinance);
+      r.bar = (r.FclosePct ?? 0) + (r.delta ?? 0);
     }
   }
 
+  function toSortedArray(): Row[] {
+    return Object.values(rows).sort((a, b) => (b.bar ?? 0) - (a.bar ?? 0));
+  }
+
+  // ---------- Tooltip HTML (Chart.js-style: icon + CODE + big %) ----------
+  function tooltipHtml(r: Row) {
+    const code = r.code.toUpperCase();
+    const lower = code.toLowerCase();
+    const iconLower = `/png_currency/${lower}.png`;
+    const iconUpper = `/png_currency/${code}.png`;
+    const val = Number(r.bar ?? 0);
+    const percent = `${val.toLocaleString(undefined, { maximumFractionDigits: 2 })}%`;
+
+    return `
+      <div style="display:flex; align-items:center; gap:10px; padding:10px 12px;">
+        <img src="${iconLower}" alt="${code}"
+             style="width:22px; height:22px; border-radius:4px; object-fit:contain; background:#111827;"
+             onerror="this.onerror=null; this.src='${iconUpper}';" />
+        <div style="display:flex; flex-direction:column; line-height:1.25;">
+          <div style="font-weight:700; letter-spacing:0.3px;">${code}</div>
+          <div><span style="font-size:18px; font-weight:700;">${percent}</span></div>
+        </div>
+      </div>
+    `;
+  }
+
+  // ---------- Render (Chart.js-like styling) ----------
+  function render() {
+    if (!chart) return;
+
+    recalcAll();
+    const arr = toSortedArray();
+
+    const categories = arr.map((r) => r.code.toUpperCase());
+    const data = arr.map((r) => {
+      const v = Number((r.bar ?? 0).toFixed(2));
+      const pos = v >= 0;
+      return {
+        value: v,
+        itemStyle: {
+          color: pos ? "rgba(34,197,94,0.85)" : "rgba(239,68,68,0.85)",
+          borderColor: pos ? "#22c55e" : "#ef4444",
+          borderWidth: 0,
+          opacity: 0.95 // base opacity so blur looks subtle
+        }
+      };
+    });
+
+    const option: EChartsOption = {
+      animationDuration: 300,
+      grid: { left: 40, right: 20, top: 20, bottom: 80 },
+      legend: { show: false },
+      tooltip: {
+        trigger: "axis",
+        axisPointer: { type: "shadow" },
+        backgroundColor: "rgba(17, 24, 39, 0.95)",
+        borderColor: "transparent",
+        padding: 0,
+        extraCssText:
+          "border-radius:10px; box-shadow:0 6px 24px rgba(0,0,0,0.35); pointer-events:none;",
+        formatter: (params: any) => {
+          const p = Array.isArray(params) ? params[0] : params;
+          const code: string = p?.name;
+          const r = rows[code];
+          return r ? tooltipHtml(r) : code;
+        }
+      },
+      xAxis: {
+        type: "category",
+        data: categories,
+        axisTick: { alignWithLabel: true },
+        axisLabel: { rotate: 60, fontSize: 11, color: "#cbd5e1" },
+        axisLine: { show: false },
+        splitLine: { show: false }
+      },
+      yAxis: {
+        type: "value",
+        axisLabel: { color: "#94a3b8", formatter: (v: number) => String(v) },
+        splitLine: { show: true, lineStyle: { color: "rgba(148,163,184,0.2)" } },
+        axisLine: { show: false },
+        axisTick: { show: false }
+      },
+      series: [
+        {
+          type: "bar",
+          name: "",
+          data,
+          barMaxWidth: 22,
+          barCategoryGap: "5%",
+          barGap: "10%",
+          cursor: "pointer",
+          label: { show: false }, // no numbers on top
+          // ---- Hover styling: keep others darker, but less dark ----
+          emphasis: {
+            focus: "self",
+            blurScope: "coordinateSystem",
+            itemStyle: {
+              shadowBlur: 18,
+              shadowColor: "rgba(0,0,0,0.35)",
+              opacity: 1
+            }
+          },
+          blur: {
+            // Less dark than default (e.g., 0.7 instead of ~0.1)
+            itemStyle: { opacity: 0.7 }
+          }
+        }
+      ]
+    };
+
+    chart.setOption(option, true);
+  }
+
+  // ---------- Data: API + WS ----------
+  async function loadApi() {
+    const res = await fetch("https://bot-advisor.com/api/robo-advisor/analytics", { cache: "no-store" });
+    const json = await res.json();
+    const items: ApiItem[] = Array.isArray(json) ? json : [];
+
+    const filtered = items.filter((x) => x?.bot === "AI_Analytic" && x?.code);
+    rows = {};
+    for (const it of filtered) {
+      const code = it.code.trim().toUpperCase();
+      rows[code] = {
+        code,
+        FclosePct: Number(it.FclosePct ?? 0),
+        close: Number(it.close ?? 0)
+      };
+    }
+
+    render();
+    startBinance(Object.keys(rows));
+    startTimer();
+  }
+
+  function startBinance(codes: string[]) {
+    if (!codes.length) return;
+    const streams = codes.map((c) => `${c.toLowerCase()}usdt@ticker`).join("/");
+
+    if (ws) { try { ws.close(); } catch {} ws = null; }
+    ws = new WebSocket(`wss://stream.binance.com:9443/stream?streams=${streams}`);
+
+    // Cache price updates only; re-render on 5s timer
+    ws.onmessage = (ev) => {
+      try {
+        const payload = JSON.parse(ev.data);
+        const d = payload?.data ?? payload;
+        const symbol: string | undefined = d?.s;
+        const lastStr: string | undefined = d?.c;
+        if (!symbol || !lastStr) return;
+
+        const code = symbol.endsWith("USDT") ? symbol.slice(0, -4) : symbol;
+        const price = Number(lastStr);
+        if (!isFinite(price)) return;
+
+        const uCode = code.toUpperCase();
+        if (rows[uCode]) rows[uCode].lastPriceBinance = price;
+      } catch { /* ignore */ }
+    };
+  }
+
+  function startTimer() {
+    stopTimer();
+    refreshTimer = window.setInterval(render, REFRESH_MS);
+  }
+  function stopTimer() {
+    if (refreshTimer !== null) { clearInterval(refreshTimer); refreshTimer = null; }
+  }
+
+  // ---------- Mount / Resize ----------
+  let resizeObserver: ResizeObserver | null = null;
+  function handleWinResize() { chart?.resize(); }
+
   onMount(() => {
-    fetchAndRender();
-    return () => destroyChart();
+    chart = echarts.init(chartEl);
+    loadApi();
+
+    resizeObserver = new ResizeObserver(() => chart?.resize());
+    resizeObserver.observe(chartEl);
+    window.addEventListener("resize", handleWinResize);
+  });
+
+  onDestroy(() => {
+    stopTimer();
+    if (ws) try { ws.close(); } catch {}
+    if (resizeObserver) resizeObserver.disconnect();
+    window.removeEventListener("resize", handleWinResize);
+    if (chart) { chart.dispose(); chart = null; }
   });
 </script>
 
+<!-- Container -->
+<div bind:this={chartEl} style="width:100%;height:480px;position:relative;"></div>
+
 <style>
-  .wrap {
-    width: 100%;
-    height: 480px;
-    border-radius: 0; 
-    padding: 0;
-    box-sizing: border-box;
-    position: relative;
-  }
-  .wrap canvas {
-    background: transparent;
-  }
-  .status {
-    margin-bottom: 8px;
-    font-size: 0.95rem;
-    color: #ef4444;
-  }
+  :global(.echarts) { user-select: none; }
 </style>
-
-<div class="status">
-  {#if loading}Loading…{/if}
-  {#if error}{error}{/if}
-</div>
-
-<div class="wrap">
-  <canvas bind:this={canvas}></canvas>
-</div>
