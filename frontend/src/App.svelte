@@ -12,7 +12,7 @@
   import Header from "../src/components/Header.svelte";
   import ChartAlex from "./pages/Chart-alex.svelte";
   import HeatmapAlex from "./components/Heatmap-Alex.svelte";
-  import ChartsAlex from "./components/Charts-Alex.svelte";
+  // import ChartsAlex from "./components/Charts-Alex.svelte";
   import ChartsAlexNew from "./components/Charts-Alex-new.svelte";
 
   let activePage: string = "home";
@@ -23,6 +23,45 @@
     selectedPortfolio = id;
   }
 </script>
+
+<Header />
+
+<div class="container">
+  <Sidebar bind:activePage />
+
+  <div class="content">
+    {#if activePage === "home"}
+      <Home
+        bind:activePage
+        on:openPortfolio={(event) => openPortfolio(event.detail)}
+      />
+    {:else if activePage === "chart"}
+      <!-- <Chart /> -->
+      <ChartAlex />
+      <HeatmapAlex />
+    {:else if activePage === "charts"}
+
+      <ChartsAlexNew />
+    {:else if activePage === "balance"}
+      <Balance />
+    {:else if activePage === "settings"}
+      <Settings />
+    {:else if activePage === "portfolio"}
+      <PortfolioPage
+        {selectedPortfolio}
+        on:back={() => (activePage = "home")}
+      />
+    {:else if activePage === "constructor"}
+      <Constructor bind:activePage />
+    {:else if activePage === "ai-adviser"}
+      <AiAdviser bind:activePage />
+    {:else if activePage === "analytic"}
+      <Analytic bind:activePage />
+    {:else if activePage === "study"}
+      <Study bind:activePage />
+    {/if}
+  </div>
+</div>
 
 <style>
   .container {
@@ -36,35 +75,3 @@
     padding: 20px;
   }
 </style>
-
-<Header />
-
-<div class="container">
-  <Sidebar bind:activePage />
-
-  <div class="content">
-    {#if activePage === "home"}
-      <Home bind:activePage on:openPortfolio={event => openPortfolio(event.detail)} />
-    {:else if activePage === "chart"}
-      <!-- <Chart /> -->
-      <ChartAlex />
-      <HeatmapAlex />
-      <ChartsAlexNew />
-
-    {:else if activePage === "balance"}
-      <Balance />
-    {:else if activePage === "settings"}
-      <Settings />
-    {:else if activePage === "portfolio"}
-      <PortfolioPage {selectedPortfolio} on:back={() => activePage = "home"} />
-    {:else if activePage === "constructor"}
-      <Constructor bind:activePage />
-    {:else if activePage === "ai-adviser"}
-      <AiAdviser bind:activePage />
-    {:else if activePage === "analytic"}
-      <Analytic bind:activePage />
-    {:else if activePage === "study"}
-      <Study bind:activePage />
-    {/if}
-  </div>
-</div>
