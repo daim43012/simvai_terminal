@@ -12,6 +12,8 @@
   import Header from "../src/components/Header.svelte";
   import ChartAlex from "./pages/Chart-alex.svelte";
   import HeatmapAlex from "./components/Heatmap-Alex.svelte";
+  import ChartsAlex from "./components/Charts-Alex.svelte";
+  import ChartsAlexNew from "./components/Charts-Alex-new.svelte";
 
   let activePage: string = "home";
   let selectedPortfolio: any;
@@ -47,6 +49,7 @@
       <!-- <Chart /> -->
       <ChartAlex />
       <HeatmapAlex />
+      <ChartsAlexNew />
 
     {:else if activePage === "balance"}
       <Balance />
