@@ -4,10 +4,23 @@
   let menuItems = [
     { icon: "home-outline", tooltip: "Главная", page: "home" },
     { icon: "stats-chart-outline", tooltip: "График", page: "chart" },
+    { icon: "stats-chart-outline", tooltip: "Графики", page: "charts" },
     { icon: "wallet-outline", tooltip: "Баланс", page: "balance" },
-    { icon: "settings-outline", tooltip: "Настройки", page: "settings" }
+    { icon: "settings-outline", tooltip: "Настройки", page: "settings" },
   ];
 </script>
+
+<div class="sidebar">
+  {#each menuItems as item}
+    <div
+      class="menu-item"
+      title={item.tooltip}
+      on:click={() => (activePage = item.page)}
+    >
+      <ion-icon name={item.icon}></ion-icon>
+    </div>
+  {/each}
+</div>
 
 <style>
   .sidebar {
@@ -45,11 +58,3 @@
     color: white;
   }
 </style>
-
-<div class="sidebar">
-  {#each menuItems as item}
-    <div class="menu-item" title="{item.tooltip}" on:click={() => activePage = item.page}>
-      <ion-icon name="{item.icon}"></ion-icon>
-    </div>
-  {/each}
-</div>
