@@ -169,7 +169,14 @@
   <div class="grid">
     {#each items as item}
       <div class="card">
-        <div class="code-badge">{item.code} / USDT</div>
+        <div class="code-badge">
+          <img
+            src={`/png_currency/${item.code.toLowerCase()}.png`}
+            alt={item.code}
+            class="crypto-logo"
+          />
+          {item.code} / USDT
+        </div>          
 
         <div class="price {priceFlash[item.code]}">
           {#if livePrices[item.code]}
@@ -226,8 +233,8 @@
 
                 <!-- Close marker -->
                 <div class="vp-marker" style={`top:${getMarkerTopPctForClose(item.code)}%`}>
-                  <div class="vp-tip">Close: {getCloseLabel(item.code)}</div>
-                </div>
+                  <div class="vp-tip vp-tip--close">Close: {getCloseLabel(item.code)}</div>
+                </div>                
 
                 <!-- Live marker (always blue) -->
                 <div
@@ -243,11 +250,11 @@
 
                 <!-- All-metrics tooltip -->
                 <div class="vp-alltip">
-                  <div class="row"><span>High</span><b>{getHighLabel(item.code)}</b></div>
-                  <div class="row"><span>Current</span><b>{getLiveLabel(item.code)}</b></div>
-                  <div class="row"><span>Close</span><b>{getCloseLabel(item.code)}</b></div>
-                  <div class="row"><span>Low</span><b>{getLowLabel(item.code)}</b></div>
-                </div>
+                  <div class="row row-high"><span>High</span><b>{getHighLabel(item.code)}</b></div>
+                  <div class="row row-current"><span>Current</span><b>{getLiveLabel(item.code)}</b></div>
+                  <div class="row row-close"><span>Close</span><b>{getCloseLabel(item.code)}</b></div>
+                  <div class="row row-low"><span>Low</span><b>{getLowLabel(item.code)}</b></div>
+                </div>                
               </div>
             {:else}
               <div class="vp-wrap"><div class="vp-bar"></div></div>
@@ -286,10 +293,20 @@
   }
 
   .code-badge {
-    font-size: 0.875rem;
-    opacity: 0.8;
-    padding: 6px 0 0 12px;
-  }
+  display: flex;
+  align-items: center;
+  gap: 6px;           /* spacing between logo and text */
+  font-size: 0.875rem;
+  opacity: 0.8;
+  padding: 6px 0 0 12px;
+}
+
+.crypto-logo {
+  width: 15px;
+  height: 15px;
+  object-fit: contain;
+  background-color: tra;
+}
 
   .price {
     font-size: 1.6rem;
@@ -383,7 +400,7 @@
     position: absolute;
     left: 2px; right: 2px;
     height: 3px;
-    background: #0b0b0b;
+    background: #9ca3af;
     border-radius: 2px;
     transform: translateY(-50%);
     box-shadow: 0 0 0 1px rgba(255,255,255,0.06);
@@ -403,6 +420,11 @@
     pointer-events: none;
     transition: opacity 0.12s;
   }
+
+  /* Left accents on the small tiles to match their meanings */
+  .vp-tip--close { border-left: 3px solid #9ca3af; padding-left: 8px; }
+  .vp-live-tip  { border-left: 3px solid #3b82f6; padding-left: 8px; }
+
   .vp-marker:hover .vp-tip { opacity: 1; }
 
   /* Live marker always blue */
@@ -463,7 +485,22 @@
     pointer-events: none;
     transition: opacity 0.12s;
     box-shadow: 0 6px 18px rgba(0,0,0,0.35);
+    
   }
+
+  /* Colors for names + numbers in the all-metrics tooltip */
+  .vp-alltip .row-high span,
+  .vp-alltip .row-high b { color: #34d399; }  /* High = green */
+
+  .vp-alltip .row-current span,
+  .vp-alltip .row-current b { color: #3b82f6; }  /* Current = blue */
+
+  .vp-alltip .row-close span,
+  .vp-alltip .row-close b { color: #9ca3af; }  /* Close = gray */
+
+  .vp-alltip .row-low span,
+  .vp-alltip .row-low b { color: #ef4444; }  /* Low = red */
+
   .vp-wrap:hover .vp-alltip { opacity: 1; }
   .vp-alltip .row { display: flex; gap: 8px; justify-content: space-between; }
   .vp-alltip .row + .row { margin-top: 4px; }
@@ -489,3 +526,5 @@
   .status { opacity: 0.8; }
   .status.error { color: #ef4444; }
 </style>
+
+
